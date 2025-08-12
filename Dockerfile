@@ -1,47 +1,34 @@
-# Builder stage
-FROM python:3.11-slim as builder 
+FROM python:3.13-slim as builder
+
+RUN mkdir /app
 
 WORKDIR /app
 
-# Prevents Python from writing pyc files
 ENV PYTHONDONTWRITEBYTECODE=1
-# Ensures Python output is sent straight to terminal
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc python3-dev && \
-    rm -rf /var/lib/apt/lists/*
+RUN pip install --upgrade pip
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --user -r requirements.txt
+FROM python:3.13-slim
 
-# Runtime stage
-FROM python:3.11-slim 
+RUN useradd -m -r appuser && \
+    mkdir /app && \
+    chown -R appuser /app
 
-# Create non-root user
-RUN useradd -m appuser && \
-    mkdir -p /app/staticfiles && \
-    chown -R appuser:appuser /app
+COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 WORKDIR /app
 
-# Copy installed packages from builder
-COPY --from=builder --chown=appuser:appuser /root/.local /home/appuser/.local
-
-# Copy application code
 COPY --chown=appuser:appuser . .
 
-# Ensure scripts in .local are usable
-ENV PATH=/home/appuser/.local/bin:$PATH
+ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Heroku-specific requirements
-ENV PORT=8000
-EXPOSE $PORT
-
 USER appuser
+EXPOSE 8000
+RUN chmod +x /app/entrypoint.prod.sh
 
-# Heroku needs this exact CMD format
-CMD ["gunicorn", "your_project.wsgi:application", "--bind", "0.0.0.0:$PORT"]
+CMD ["/app/entrypoint.prod.sh"]
