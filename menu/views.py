@@ -7,7 +7,6 @@ import jwt
 from datetime import datetime, timezone, timedelta
 now = datetime.now(timezone.utc)
 
-@csrf_exempt # HAPUS SAAT PRODUCTION
 def login_admin_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')

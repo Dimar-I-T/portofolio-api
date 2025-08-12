@@ -1,24 +1,40 @@
+version: '3.8'
+
 services:
   db:
-    image: postgres:17
+    image: postgres
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     env_file:
       - .env.prod
+    extra_hosts:  
+      - "host.docker.internal:host-gateway"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    env_file:
+      - .env.prod
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    
 
   django-web:
     build: .
     container_name: django-docker
     depends_on:
       - db
+    ports:
+      - "8000:8000" 
     volumes:
-      - ./static:/app/staticfiles
+      - static_volume:/app/staticfiles
     env_file:
       - .env.prod
     environment:
-      - DJANGO_ENV=docker
+      DJANGO_ENV: docker
 
 volumes:
   postgres_data:
