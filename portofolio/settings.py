@@ -14,6 +14,7 @@ from pathlib import Path
 from decouple import config
 from decouple import Config, RepositoryEnv
 import os
+import dj_database_url
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
@@ -98,6 +99,11 @@ DATABASES = {
         'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
+
+DATABASES['default'] = dj_database_url.config(
+    default=os.getenv('DATABASE_URL'),
+    conn_max_age=600,  # keep connections alive for performance
+)
 
 # new
 # Password validation
