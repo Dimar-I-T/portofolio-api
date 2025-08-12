@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres
@@ -37,4 +35,5 @@ services:
       DJANGO_ENV: docker
 
 volumes:
-  postgres_data:
+  postgres-data:
+  static_volume:
