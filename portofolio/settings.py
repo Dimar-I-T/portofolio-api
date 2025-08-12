@@ -15,11 +15,8 @@ from decouple import config
 from decouple import Config, RepositoryEnv
 import os
 
-ENV_FILE = '.env.local' if os.getenv('ENV') == 'local' else '.env.prod'
-config = Config(RepositoryEnv(ENV_FILE))
-
-SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=False, cast=bool)
+SECRET_KEY = os.environ.get('SECRET_KEY')
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 JWT_EXP_DELTA_SECONDS = 3600
 
@@ -94,11 +91,11 @@ WSGI_APPLICATION = 'portofolio.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('POSTGRES_DB', default='postgres'),
-        'USER': config('POSTGRES_USER', default='postgres'),
-        'PASSWORD': config('POSTGRES_PASSWORD'),
-        'HOST': config('DB_HOST', default='db'),  # DB_HOST harus 'db' karena itu service name di docker-compose
-        'PORT': config('DB_PORT', default='5432'),
+        'NAME': os.getenv('POSTGRES_DB', 'postgres'),
+        'USER': os.getenv('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
+        'HOST': os.getenv('DB_HOST', 'postgres'),  # DB_HOST harus 'db' karena itu service name di docker-compose
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
 
